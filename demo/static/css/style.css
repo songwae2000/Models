@@ -1,0 +1,82 @@
+/* Custom styles for the image classifier demo */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border-radius: 10px;
+    border: none;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+#paste_area {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background-color: #fafafa;
+}
+
+#paste_area:hover {
+    background-color: #f0f0f0;
+    border-color: #007bff !important;
+}
+
+#paste_area.bg-light {
+    background-color: #e3f2fd !important;
+    border-color: #2196f3 !important;
+}
+
+.progress {
+    border-radius: 4px;
+}
+
+.badge {
+    font-size: 0.9em !important;
+}
+
+.img-thumbnail {
+    border-radius: 8px;
+}
+
+.alert {
+    border-radius: 8px;
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+/* Responsive image sizing */
+@media (max-width: 768px) {
+    .img-fluid {
+        max-height: 300px;
+        object-fit: contain;
+    }
+}
+
+/* Print styles */
+@media print {
+    .btn, .navbar, footer {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Loading animation */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Custom focus styles */
+#paste_area:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}

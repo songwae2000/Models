@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Upload Image for Classification</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Upload an image or paste from clipboard to test the CNN and DNN models on CINIC-10 classes:</p>
+                <p class="small"><strong>Classes:</strong> airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck</p>
+                
+                <!-- Model Selection -->
+                <div class="mb-4">
+                    <label for="model_type" class="form-label">Select Model</label>
+                    <select class="form-select" id="model_type" name="model_type" required>
+                        <option value="cnn">CNN (Convolutional Neural Network)</option>
+                        <option value="dnn">DNN (Deep Neural Network / MLP)</option>
+                    </select>
+                </div>
+
+                <!-- File Upload Form -->
+                <form method="post" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" class="mb-4" id="upload_form">
+                    <input type="hidden" id="selected_model" name="model_type" value="cnn">
+                    
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Choose Image File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept="image/*">
+                        <div class="form-text">Supported formats: PNG, JPG, JPEG, GIF, BMP, WebP</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="upload_btn">
+                        <i class="bi bi-upload"></i> Upload and Classify
+                    </button>
+                </form>
+
+                <div class="text-center mb-3">
+                    <span class="text-muted">OR</span>
+                </div>
+
+                <!-- Paste/Drop Image Section -->
+                <div class="mb-3">
+                    <div id="paste_area" class="border border-dashed border-2 p-4 text-center" style="min-height: 200px; cursor: pointer;">
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-cloud-upload" style="font-size: 2rem;"></i>
+                        </p>
+                        <p class="text-muted mb-1">Click here and press <kbd>Ctrl+V</kbd> to paste an image</p>
+                        <small class="text-muted">or drag and drop an image file</small>
+                    </div>
+                </div>
+
+                <!-- Preview Area -->
+                <div id="image_preview" class="mt-3" style="display: none;">
+                    <h6>Image Preview:</h6>
+                    <img id="preview_img" src="" alt="Preview" class="img-thumbnail mb-2" style="max-width: 200px;">
+                    <br>
+                    <button id="classify_pasted" class="btn btn-success">Classify Image</button>
+                    <button id="clear_preview" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loading" class="text-center mt-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Processing...</span>
+                    </div>
+                    <p class="mt-2">Processing image...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Comparison Info -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">CNN Model</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Type:</strong> Convolutional Neural Network</li>
+                            <li><strong>Parameters:</strong> ~262K</li>
+                            <li><strong>Training Epochs:</strong> 10</li>
+                            <li><strong>Test Accuracy:</strong> <span class="badge bg-success">59.70%</span></li>
+                            <li><strong>Strengths:</strong> Spatial feature extraction</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">DNN Model</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Type:</strong> Multi-Layer Perceptron</li>
+                            <li><strong>Parameters:</strong> ~1.6M</li>
+                            <li><strong>Training Epochs:</strong> 10</li>
+                            <li><strong>Test Accuracy:</strong> <span class="badge bg-warning text-dark">41.96%</span></li>
+                            <li><strong>Strengths:</strong> Fast inference</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Summary -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">Performance Summary</h6>
+                    <p class="mb-1">The CNN model outperforms the DNN by <strong>17.74 percentage points</strong> (59.70% vs 41.96%).</p>
+                    <p class="mb-0">This demonstrates the importance of spatial feature extraction for image classification tasks.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let pastedImageData = null;
+
+// Update hidden model input when dropdown changes
+document.getElementById('model_type').addEventListener('change', function() {
+    document.getElementById('selected_model').value = this.value;
+});
+
+// Paste functionality
+document.getElementById('paste_area').addEventListener('click', function() {
+    this.focus();
+});
+
+document.getElementById('paste_area').addEventListener('paste', function(e) {
+    e.preventDefault();
+    const items = e.clipboardData.items;
+    
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            const file = items[i].getAsFile();
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                pastedImageData = event.target.result;
+                document.getElementById('preview_img').src = pastedImageData;
+                document.getElementById('image_preview').style.display = 'block';
+            };
+            
+            reader.readAsDataURL(file);
+            break;
+        }
+    }
+});
+
+// Drag and drop functionality
+document.getElementById('paste_area').addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('bg-light');
+});
+
+document.getElementById('paste_area').addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    this.classList.remove('bg-light');
+});
+
+document.getElementById('paste_area').addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('bg-light');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+        const reader = new FileReader();
+        
+        reader.onload = function(event) {
+            pastedImageData = event.target.result;
+            document.getElementById('preview_img').src = pastedImageData;
+            document.getElementById('image_preview').style.display = 'block';
+        };
+        
+        reader.readAsDataURL(files[0]);
+    }
+});
+
+// Classify pasted image
+document.getElementById('classify_pasted').addEventListener('click', function() {
+    if (!pastedImageData) return;
+    
+    const modelType = document.getElementById('model_type').value;
+    document.getElementById('loading').style.display = 'block';
+    
+    fetch('/predict_base64', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            image: pastedImageData,
+            model_type: modelType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loading').style.display = 'none';
+        
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            // Create results page content
+            const resultsHTML = createResultsHTML(data, pastedImageData);
+            document.body.innerHTML = resultsHTML;
+        }
+    })
+    .catch(error => {
+        document.getElementById('loading').style.display = 'none';
+        alert('Error: ' + error);
+    });
+});
+
+// Clear preview
+document.getElementById('clear_preview').addEventListener('click', function() {
+    pastedImageData = null;
+    document.getElementById('image_preview').style.display = 'none';
+});
+
+// File upload validation
+document.getElementById('upload_form').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('file');
+    if (!fileInput.files.length) {
+        e.preventDefault();
+        alert('Please select an image file to upload.');
+        return false;
+    }
+});
+
+function createResultsHTML(data, imageData) {
+    let resultsCards = '';
+    data.results.forEach((result, index) => {
+        const badgeClass = index === 0 ? 'bg-success' : index === 1 ? 'bg-info' : 'bg-secondary';
+        resultsCards += `
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">${result.class}</h5>
+                        <span class="badge ${badgeClass} fs-6">${result.confidence.toFixed(1)}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    // Create reliability flag HTML
+    let reliabilityHTML = '';
+    if (data.reliability_flag) {
+        const flag = data.reliability_flag;
+        reliabilityHTML = `
+            <div class="alert alert-${flag.color} d-flex align-items-center mb-3">
+                <i class="bi bi-${flag.icon} me-2"></i>
+                <div>
+                    <strong>Prediction Reliability: ${flag.level.charAt(0).toUpperCase() + flag.level.slice(1)}</strong><br>
+                    <small>${flag.message}</small>
+                    ${flag.level === 'low' ? '<br><small class="text-muted">Consider the top 3 predictions below for alternatives.</small>' : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Classification Results</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <nav class="navbar navbar-dark bg-dark">
+                <div class="container">
+                    <a class="navbar-brand" href="/">
+                        <strong>Image Classifier Demo</strong>
+                    </a>
+                </div>
+            </nav>
+            <div class="container mt-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Uploaded Image</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="${imageData}" alt="Uploaded image" class="img-fluid rounded">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5>Prediction Results (${data.model_type})</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-success">
+                                    <h4 class="alert-heading">Predicted Class: ${data.predicted_class}</h4>
+                                </div>
+                                ${reliabilityHTML}
+                                <h6>Top 3 Predictions:</h6>
+                                <div class="row">
+                                    ${resultsCards}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="/" class="btn btn-primary">Try Another Image</a>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+}
+
+// Make paste area focusable
+document.getElementById('paste_area').setAttribute('tabindex', '0');
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Classification Results{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Image Display -->
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Uploaded Image</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded image" class="img-fluid rounded shadow-sm">
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Display -->
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Prediction Results ({{ model_type }})</h5>
+            </div>
+            <div class="card-body">
+                <!-- Main Prediction with Reliability Flag -->
+                <div class="alert alert-success text-center">
+                    <h4 class="alert-heading mb-2">Predicted Class</h4>
+                    <h2 class="text-capitalize">{{ predicted_class }}</h2>
+                </div>
+
+                <!-- Reliability Assessment -->
+                {% if reliability_flag %}
+                <div class="alert alert-{{ reliability_flag.color }} d-flex align-items-center">
+                    <i class="bi bi-{{ reliability_flag.icon }} me-2"></i>
+                    <div>
+                        <strong>Prediction Reliability: {{ reliability_flag.level.title() }}</strong><br>
+                        <small>{{ reliability_flag.message }}</small>
+                        {% if reliability_flag.level == 'low' %}
+                        <br><small class="text-muted">Consider the top 3 predictions below for alternatives.</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Top 3 Predictions -->
+                <h6 class="mb-3">Top 3 Predictions:</h6>
+                <div class="row">
+                    {% for result in results %}
+                    <div class="col-12 mb-2">
+                        <div class="card {% if loop.index == 1 %}border-success{% elif loop.index == 2 %}border-info{% else %}border-secondary{% endif %}">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-capitalize">{{ result.class }}</span>
+                                    <span class="badge {% if loop.index == 1 %}bg-success{% elif loop.index == 2 %}bg-info{% else %}bg-secondary{% endif %} fs-6">
+                                        {{ "%.1f"|format(result.confidence) }}%
+                                    </span>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar {% if loop.index == 1 %}bg-success{% elif loop.index == 2 %}bg-info{% else %}bg-secondary{% endif %}" 
+                                         style="width: {{ result.confidence }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Model Info -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="mb-2">Model Information:</h6>
+                    {% if model_type == 'CNN' %}
+                    <ul class="list-unstyled mb-0 small">
+                        <li><strong>Architecture:</strong> Convolutional Neural Network</li>
+                        <li><strong>Parameters:</strong> ~262,000</li>
+                        <li><strong>Training Epochs:</strong> 10</li>
+                        <li><strong>Test Accuracy:</strong> <span class="badge bg-success">59.70%</span></li>
+                        <li><strong>Spatial Processing:</strong> Yes</li>
+                    </ul>
+                    {% else %}
+                    <ul class="list-unstyled mb-0 small">
+                        <li><strong>Architecture:</strong> Multi-Layer Perceptron</li>
+                        <li><strong>Parameters:</strong> ~1,600,000</li>
+                        <li><strong>Training Epochs:</strong> 10</li>
+                        <li><strong>Test Accuracy:</strong> <span class="badge bg-warning text-dark">41.96%</span></li>
+                        <li><strong>Spatial Processing:</strong> No</li>
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+            <i class="bi bi-arrow-left"></i> Try Another Image
+        </a>
+        <button class="btn btn-secondary" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print Results
+        </button>
+    </div>
+</div>
+
+<!-- Model Comparison -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Model Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>CNN</th>
+                                <th>DNN (MLP)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Parameters</strong></td>
+                                <td>~262K</td>
+                                <td>~1.6M</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Spatial Awareness</strong></td>
+                                <td>High</td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Training Speed</strong></td>
+                                <td>Medium</td>
+                                <td>Fast</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Memory Usage</strong></td>
+                                <td>Medium</td>
+                                <td>High</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Test Accuracy</strong></td>
+                                <td><span class="badge bg-success">59.70%</span></td>
+                                <td><span class="badge bg-warning text-dark">41.96%</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Image Performance</strong></td>
+                                <td>Higher (+17.74%)</td>
+                                <td>Lower</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

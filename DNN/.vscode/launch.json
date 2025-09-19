@@ -1,0 +1,53 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Train Model",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/train.py",
+            "args": [
+                "--data_dir", "/Users/cajetan/Documents/Deep_Lerning/Prosit_1/archive",
+                "--epochs", "10",
+                "--batch_size", "128",
+                "--lr", "3e-4",
+                "--hidden", "2048", "1024",
+                "--dropout", "0.35",
+                "--weight_decay", "1e-4",
+                "--early_stop", "5",
+                "--out_dir", "runs/my_experiment"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python"
+        },
+        {
+            "name": "Predict Images",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/predict.py",
+            "args": [
+                "--ckpt", "${workspaceFolder}/runs/my_experiment/best.ckpt",
+                "--in_dir", "${workspaceFolder}/test_images",
+                "--threshold", "0.3"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python"
+        },
+        {
+            "name": "Evaluate Model",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/eval.py",
+            "args": [
+                "--ckpt", "${workspaceFolder}/runs/my_experiment/best.ckpt",
+                "--data_dir", "/Users/cajetan/Documents/Deep_Lerning/Prosit_1/archive",
+                "--out_dir", "runs/evaluation"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python"
+        }
+    ]
+}
