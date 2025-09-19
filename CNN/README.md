@@ -73,11 +73,4 @@ The model includes comprehensive visualization features:
 - RAM: Minimum 4GB recommended
 - Storage: ~500MB for dataset and model files
 
-## Expected Performance
-
-Typical results after 10 epochs:
-- Training Accuracy: 70-80%
-- Validation Accuracy: 65-75%
-- Test Accuracy: 60-70%
-
 Performance varies based on hardware and random initialization.
